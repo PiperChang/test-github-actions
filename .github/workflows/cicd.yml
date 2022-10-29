@@ -1,0 +1,30 @@
+name: CI/CD
+
+on:
+  push: 
+    branches: ["master"] 
+  workflow_dispatch: 
+  # 혹은, workflow_dispatch를 버튼을 누를 때
+
+jobs: 
+# 뭘 실행할 건데 ?
+  ci: 
+  # 첫 번째 job은 ci야
+    runs-on: ubuntu-latest
+    # 우분투 중에 제일 최신 버전에서 이 job을 실행할 거야
+    steps:
+    - uses: actions/checkout@master # 먼저 master로 checkout할거야 
+    - run: npm ci #npm ci를 돌릴 거야 (npm ci -> npm install 비슷한 거)
+    - run: npm run test   
+		- run: echo SUCCESS
+    - run: npm run build
+    - name: deploy to s3
+      uses: jakejarvis/s3-sync-action@master
+      with:
+        args: --delete
+      env:
+        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: 'ap-northeast-2'
+        SOURCE_DIR: 'build'
